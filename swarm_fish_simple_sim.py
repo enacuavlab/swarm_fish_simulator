@@ -10,11 +10,11 @@ import math
 import swarmfish.swarm_control as sc
 import swarmfish.obstacles as so
 
-TEST_OBSTACLE = True
+TEST_OBSTACLE = False
 SHOW_DIRECTION = True
 SHOW_ARENA = True
-SHOW_INFLUENTIALS = True
-NB_INFLUENTIAL = 1
+SHOW_INFLUENTIALS = False
+NB_INFLUENTIAL = 2
 
 POS_NOISE = 0.
 SPEED_NOISE = 0. #0.1
@@ -26,11 +26,12 @@ class SwarmFish_Scenario(SwarmFish_Controller):
         super().__init__(ARGS, env, view)
 
         #### Init SwarmFish ########################################
-        arena_radius = 10.
+        arena_radius = 25.
         arena_center = np.array([0., 0., 0.])
         self.arena = so.Arena(center=arena_center[0:2], radius=arena_radius, name="arena")
         if SHOW_ARENA:
-            self.view.add_cylinder(radius=arena_radius, height=0.01, pos=arena_center, color=(0,1,0,1))
+            #self.view.add_cylinder(radius=arena_radius, height=0.01, pos=arena_center, color=(0,1,0,1))
+            self.view.add_circle(radius=arena_radius, pos=arena_center, color=(0,1,0,1))
 
         init_yaw = [ self.obs[j].att[2] for j in range(self.num_drones) ]
         #self.desired_course = np.array(init_yaw) # np.zeros(self.num_drones)

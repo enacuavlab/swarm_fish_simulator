@@ -33,7 +33,7 @@ class SwarmFish_Environment():
 
     def __init__(self, ARGS, create_env=True):
         self.num_drones = ARGS.num_drones
-        self.simulation_freq_hz = float(ARGS.simulation_freq_hz)
+        self.simulation_freq_hz = float(ARGS.simulation_freq)
         self.time_step = 1. / self.simulation_freq_hz
         self.random_init = ARGS.random_init
         self.sim = []
@@ -102,6 +102,14 @@ class SwamFish_View(QMainWindow):
         mesh.translate(pos[0], pos[1], pos[2])
         self.view.addItem(mesh)
 
+    def add_circle(self, radius:float, pos:np.ndarray, width:float=2., res:int=20, color=(1.,1.,1.,1.)):
+        t = np.linspace(0,2*np.pi,res,endpoint=True).reshape(res,1)
+        vertices = np.zeros((res,3))
+        vertices[0:res,:] = np.hstack((radius*np.cos(t),radius*np.sin(t),np.zeros((res,1))))
+        circle = gl.GLLinePlotItem(pos=vertices, color=color)
+        circle.translate(pos[0], pos[1], pos[2])
+        self.view.addItem(circle)
+
     def add_polygon(self, vertices:np.ndarray, height:float, color=(1., 1., 1., 1.)):
         verts, faces = utqg.polygon_mesh(vertices, height)
         mesh = gl.GLMeshItem(vertexes=verts,faces=faces,drawFaces=True,
@@ -156,7 +164,8 @@ class SwarmFish_Controller(QWidget, Ui_SwarmController):
         self.setWindowTitle("SwarmFish")
 
         self.num_drones = ARGS.num_drones
-        self.simulation_freq_hz = ARGS.simulation_freq_hz
+        self.simulation_freq_hz = ARGS.simulation_freq
+        self.control_freq_hz = ARGS.control_freq
         self.env = env
         self.view = view
 
@@ -193,7 +202,7 @@ class SwarmFish_Controller(QWidget, Ui_SwarmController):
         raise NotImplementedError
 
     def start_simulation(self):
-        self.action_timer.start(ms_of_hz(self.simulation_freq_hz))
+        self.action_timer.start(ms_of_hz(self.control_freq_hz))
         self.simulation_timer.start(ms_of_hz(self.simulation_freq_hz))
         print("simultion started")
 
@@ -303,7 +312,8 @@ def make_args_parser():
     #### Define and parse (optional) arguments for the script ##
     parser = argparse.ArgumentParser(description="SwarmFish control with Qt")
     parser.add_argument("--num_drones", default=NB_OF_DRONES, type=int, help="Number of drones")
-    parser.add_argument("--simulation_freq_hz", default=SIMULATION_FREQ, type=int, help="Simulation frequency in Hz")
+    parser.add_argument("--simulation_freq", default=SIMULATION_FREQ, type=int, help="Simulation frequency in Hz")
+    parser.add_argument("--control_freq", default=CONTROL_FREQ, type=int, help="Control frequency in Hz")
     parser.add_argument("--swarm_config", default='config/demo.yaml', type=str, help="SwarmFish parameter file")
     parser.add_argument("--mesh_file", default='models/triangle.stl', type=str, help="STL drone file")
     parser.add_argument("--random_init", action='store_true', help="Randomize init (heading only)")
