@@ -84,12 +84,7 @@ class SwarmFish_Scenario(SwarmFish_Controller):
             wall = self.arena.get_wall(state, self.params)
             obstacles = []
             if TEST_OBSTACLE:
-                for o in [self.obstacle, self.polygon]:
-                    if o is not None:
-                        w = o.get_wall(state, self.params)
-                        if w is not None:
-                            obstacles.append(w)
-                ##obstacles = [ o.get_wall(state, self.params) for o in [self.obstacle, self.polygon] if o is not None ]
+                obstacles = [ o.get_wall(state, self.params) for o in [self.obstacle, self.polygon] if o is not None ]
             if uav_id in self.intruders_id:
                 cmd, _ = sc.compute_interactions(state, self.params, [], nb_influent=0, wall=wall,
                          speed=self.speed_setpoint*2., altitude=5., z_min=1., z_max=10., obstacles=obstacles)
