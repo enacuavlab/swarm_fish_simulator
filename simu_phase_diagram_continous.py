@@ -88,7 +88,7 @@ def run_simulation(ARGS: dict):
                     altitude=None, z_min = 4., z_max = 8.,
                     direction=None)
             noise = np.random.normal(0., NOISES)
-            dt = 1. / self.control_freq_hz
+            dt = 1. / ARGS.control_freq_hz
             speed_cmd = state.get_speed_2d() + (cmd.a_bx + noise[1]) * dt
             vz_cmd = state.get_vz() + (cmd.a_z + noise[2]) * dt
             yaw_cmd = (cmd.a_by / max(state.get_speed_2d(),0.1)) + noise[0]
