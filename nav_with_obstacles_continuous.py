@@ -9,7 +9,7 @@ import math
 
 import swarmfish.swarm_control as sc
 import swarmfish.obstacles as so
-from swarmfish.utils import load_polygons_from_json
+from swarmfish.utils import load_polygons_from_json, compute_speed_from_accel
 
 import panel_flow as pgflow
 from building import Building
@@ -17,7 +17,7 @@ from building import Building
 SHOW_DIRECTION = True
 SHOW_INFLUENTIALS = False
 USE_PANEL_FLOW = True
-NB_INFLUENTIAL = 1
+NB_INFLUENTIAL = 2
 SCENE_FILE = "scenes/test_world.json"
 
 POS_NOISE = 0.
@@ -123,14 +123,7 @@ class SwarmFish_Scenario(SwarmFish_Controller):
                     for l, influential in zip(self.lines[uav_id], influentials):
                         self.view.move_line(l, state.pos, states[influential[1]].pos)
             dt = 1. / self.control_freq_hz
-            speed_cmd = state.get_speed_2d() + cmd.a_bx * dt
-            vz_cmd = state.get_vz() + cmd.a_z * dt
-            yaw_cmd = cmd.a_by / max(state.get_speed_2d(),0.1)
-            speed = np.array([
-                speed_cmd * math.cos(state.get_course(use_heading=True)),
-                speed_cmd * math.sin(state.get_course(use_heading=True)),
-                vz_cmd,
-                yaw_cmd])
+            speed = compute_speed_from_accel(cmd, state, self.nav_params, dt, use_heading=self.params.use_heading)
             self.commands[uav_id] = speed
 
             if SHOW_DIRECTION:

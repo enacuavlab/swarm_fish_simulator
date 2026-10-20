@@ -12,7 +12,7 @@ from simple_sim.point_sim import PointSim, QuadrotorState
 from swarm_controller_simple_sim import SwarmFish_Environment, ms_of_hz, make_args_parser
 from utils.util_logger import Logger
 
-from swarmfish.utils import load_params_from_yaml, compute_quantification
+from swarmfish.utils import load_params_from_yaml, compute_quantification, compute_speed_from_accel
 import swarmfish.swarm_control as sc
 
 
@@ -26,7 +26,7 @@ def run_simulation(ARGS: dict):
     if ARGS.random_init:
         init_state[:,3] = 2.*np.pi*np.random.rand(ARGS.num_drones)
 
-    NOISES = [ np.radians(0.2), 0.01, 0.05 ] # noise on heading, speed and vertical speed (standard deviation of a normal distribution)
+    NOISES = [ 0.01, 0.01, 0.05 ] # noise on longitudinal, lateral and vertical acceleration command (standard deviation of a normal distribution)
 
     #### Create the environment
     sim = [ PointSim(init_position=x0[0:3], init_yaw=x0[3]) for x0 in init_state ]
@@ -62,6 +62,7 @@ def run_simulation(ARGS: dict):
         params.y_ali = ARGS.y_ali
     if ARGS.y_att is not None:
         params.y_att = ARGS.y_att
+    nav_params = load_params_from_yaml(ARGS.swarm_config, 'NavParams')
 
     #### Run the simulation ####################################
     START = time.time()
@@ -88,15 +89,9 @@ def run_simulation(ARGS: dict):
                     altitude=None, z_min = 4., z_max = 8.,
                     direction=None)
             noise = np.random.normal(0., NOISES)
+            accel_noise = sc.SwarmAccel(noise[0], noise[1], noise[2])
             dt = 1. / ARGS.simulation_freq_hz
-            speed_cmd = state.get_speed_2d() + (cmd.a_bx + noise[1]) * dt
-            vz_cmd = state.get_vz() + (cmd.a_z + noise[2]) * dt
-            yaw_cmd = (cmd.a_by / max(state.get_speed_2d(),0.1)) + noise[0]
-            speed = np.array([
-                speed_cmd * math.cos(state.get_course(use_heading=True)),
-                speed_cmd * math.sin(state.get_course(use_heading=True)),
-                vz_cmd,
-                yaw_cmd])
+            speed = compute_speed_from_accel(cmd, state, nav_params, dt, use_heading=params.use_heading)
             commands[uav_id] = speed
 
         #### Log the simulation ####################################
