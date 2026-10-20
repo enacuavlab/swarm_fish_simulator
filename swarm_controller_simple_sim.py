@@ -188,6 +188,7 @@ class SwarmFish_Controller(QWidget, Ui_SwarmController):
 
         #### load params from config file 
         self.params = load_params_from_yaml(ARGS.swarm_config)
+        self.nav_params = load_params_from_yaml(ARGS.swarm_config, 'NavParams')
 
         self.make_layout()
         self.show()
